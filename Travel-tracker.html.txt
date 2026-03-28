@@ -1,0 +1,262 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Europe Trip Tracker Pro</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body { font-family: Arial; margin: 0; background:#f4f4f4; }
+    header { background:#2c3e50; color:white; padding:15px; text-align:center; }
+    .tabs { display:flex; background:#34495e; }
+    .tabs button {
+      flex:1; padding:10px; border:none; color:white;
+      background:#34495e;
+    }
+    .tabs button.active { background:#1abc9c; }
+    .content { padding:15px; }
+    input, select, button {
+      width:100%; padding:10px; margin:5px 0;
+    }
+    .card {
+      background:white; padding:10px; margin-top:10px;
+      border-radius:8px;
+    }
+    .booked { border-left:5px solid green; }
+    .planned { border-left:5px solid orange; }
+  </style>
+</head>
+
+<body>
+
+<header>
+  ✈️ Europe Trip Tracker (Aug 11–28, 2026)
+</header>
+
+<div class="tabs">
+  <button onclick="showTab('flights')" class="active">Flights</button>
+  <button onclick="showTab('hotels')">Hotels</button>
+  <button onclick="showTab('activities')">Activities</button>
+  <button onclick="showTab('itinerary')">Itinerary</button>
+  <button onclick="showTab('budget')">Budget</button>
+</div>
+
+<div class="content" id="content"></div>
+
+<script>
+let data = JSON.parse(localStorage.getItem("tripPro")) || {
+  flights: [], hotels: [], activities: [], itinerary: [], budget: []
+};
+
+function save() {
+  localStorage.setItem("tripPro", JSON.stringify(data));
+}
+
+function showTab(tab) {
+  document.querySelectorAll(".tabs button").forEach(btn => btn.classList.remove("active"));
+  event.target.classList.add("active");
+
+  if (tab === "flights") renderFlights();
+  if (tab === "hotels") renderHotels();
+  if (tab === "activities") renderActivities();
+  if (tab === "itinerary") renderItinerary();
+  if (tab === "budget") renderBudget();
+}
+
+/* ---------- FLIGHTS ---------- */
+function renderFlights() {
+  let html = `
+    <h3>Add Flight</h3>
+    <input id="fTitle" placeholder="Flight (AC866)">
+    <input id="fRoute" placeholder="Route (Ottawa → London)">
+    <input id="fDate" type="date">
+    <select id="fStatus">
+      <option>Planned</option>
+      <option>Booked</option>
+    </select>
+    <button onclick="addFlight()">Add</button>
+    <h3>Flights</h3>
+  `;
+
+  data.flights.forEach((f,i)=>{
+    html += `
+      <div class="card ${f.status==='Booked'?'booked':'planned'}">
+        <b>${f.title}</b><br>
+        ${f.route}<br>
+        📅 ${f.date}<br>
+        ${f.status}<br>
+        <button onclick="deleteItem('flights',${i})">Delete</button>
+      </div>
+    `;
+  });
+
+  document.getElementById("content").innerHTML = html;
+}
+
+function addFlight() {
+  data.flights.push({
+    title:fTitle.value,
+    route:fRoute.value,
+    date:fDate.value,
+    status:fStatus.value
+  });
+  save(); renderFlights();
+}
+
+/* ---------- HOTELS ---------- */
+function renderHotels() {
+  let html = `
+    <h3>Add Hotel</h3>
+    <input id="hName" placeholder="Hotel name">
+    <input id="hCity" placeholder="City">
+    <input id="hDates" placeholder="Dates (Aug 12–15)">
+    <select id="hStatus">
+      <option>Planned</option>
+      <option>Booked</option>
+    </select>
+    <button onclick="addHotel()">Add</button>
+    <h3>Hotels</h3>
+  `;
+
+  data.hotels.forEach((h,i)=>{
+    html += `
+      <div class="card ${h.status==='Booked'?'booked':'planned'}">
+        <b>${h.name}</b><br>
+        ${h.city}<br>
+        ${h.dates}<br>
+        ${h.status}<br>
+        <button onclick="deleteItem('hotels',${i})">Delete</button>
+      </div>
+    `;
+  });
+
+  content.innerHTML = html;
+}
+
+function addHotel() {
+  data.hotels.push({
+    name:hName.value,
+    city:hCity.value,
+    dates:hDates.value,
+    status:hStatus.value
+  });
+  save(); renderHotels();
+}
+
+/* ---------- ACTIVITIES ---------- */
+function renderActivities() {
+  let html = `
+    <h3>Add Activity</h3>
+    <input id="aName" placeholder="Activity">
+    <input id="aCity" placeholder="City">
+    <input id="aDate" type="date">
+    <select id="aStatus">
+      <option>Planned</option>
+      <option>Booked</option>
+    </select>
+    <button onclick="addActivity()">Add</button>
+    <h3>Activities</h3>
+  `;
+
+  data.activities.forEach((a,i)=>{
+    html += `
+      <div class="card ${a.status==='Booked'?'booked':'planned'}">
+        <b>${a.name}</b><br>
+        ${a.city}<br>
+        📅 ${a.date}<br>
+        ${a.status}<br>
+        <button onclick="deleteItem('activities',${i})">Delete</button>
+      </div>
+    `;
+  });
+
+  content.innerHTML = html;
+}
+
+function addActivity() {
+  data.activities.push({
+    name:aName.value,
+    city:aCity.value,
+    date:aDate.value,
+    status:aStatus.value
+  });
+  save(); renderActivities();
+}
+
+/* ---------- ITINERARY ---------- */
+function renderItinerary() {
+  let html = `
+    <h3>Add Day Plan</h3>
+    <input id="iDate" type="date">
+    <input id="iPlan" placeholder="Plan for the day">
+    <button onclick="addItinerary()">Add</button>
+    <h3>Itinerary</h3>
+  `;
+
+  data.itinerary.forEach((d,i)=>{
+    html += `
+      <div class="card">
+        📅 ${d.date}<br>
+        ${d.plan}<br>
+        <button onclick="deleteItem('itinerary',${i})">Delete</button>
+      </div>
+    `;
+  });
+
+  content.innerHTML = html;
+}
+
+function addItinerary() {
+  data.itinerary.push({
+    date:iDate.value,
+    plan:iPlan.value
+  });
+  save(); renderItinerary();
+}
+
+/* ---------- BUDGET ---------- */
+function renderBudget() {
+  let html = `
+    <h3>Add Expense</h3>
+    <input id="bItem" placeholder="Item (Flight, Hotel)">
+    <input id="bAmount" type="number" placeholder="Amount">
+    <button onclick="addBudget()">Add</button>
+    <h3>Budget</h3>
+  `;
+
+  let total = 0;
+
+  data.budget.forEach((b,i)=>{
+    total += Number(b.amount);
+    html += `
+      <div class="card">
+        ${b.item}: $${b.amount}
+        <button onclick="deleteItem('budget',${i})">Delete</button>
+      </div>
+    `;
+  });
+
+  html += `<h3>Total: $${total}</h3>`;
+  content.innerHTML = html;
+}
+
+function addBudget() {
+  data.budget.push({
+    item:bItem.value,
+    amount:bAmount.value
+  });
+  save(); renderBudget();
+}
+
+/* ---------- DELETE ---------- */
+function deleteItem(type, index) {
+  data[type].splice(index,1);
+  save();
+  showTab(type);
+}
+
+/* LOAD DEFAULT */
+renderFlights();
+</script>
+
+</body>
+</html>
