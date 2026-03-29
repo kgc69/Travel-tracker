@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html>
 <head>
@@ -10,17 +9,12 @@
     .tabs { display:flex; background:#34495e; }
     .tabs button {
       flex:1; padding:10px; border:none; color:white;
-      background:#34495e;
+      background:#34495e; cursor:pointer;
     }
     .tabs button.active { background:#1abc9c; }
     .content { padding:15px; }
-    input, select, button {
-      width:100%; padding:10px; margin:5px 0;
-    }
-    .card {
-      background:white; padding:10px; margin-top:10px;
-      border-radius:8px;
-    }
+    input, select, button { width:100%; padding:10px; margin:5px 0; }
+    .card { background:white; padding:10px; margin-top:10px; border-radius:8px; }
     .booked { border-left:5px solid green; }
     .planned { border-left:5px solid orange; }
   </style>
@@ -44,215 +38,163 @@
 
 <script>
 let data = JSON.parse(localStorage.getItem("tripPro")) || {
-  flights: [], hotels: [], activities: [], itinerary: [], budget: []
+  flights: [
+    {title:"AC866", route:"Ottawa → London", date:"2026-08-11", time:"18:30", status:"Booked"},
+    {title:"Eurostar 9023", route:"London → Paris", date:"2026-08-15", time:"09:00", status:"Planned"},
+    {title:"Flight TBD", route:"Paris → Edinburgh", date:"2026-08-18", time:"10:00", status:"Planned"},
+    {title:"Flight TBD", route:"Edinburgh → Rome", date:"2026-08-22", time:"12:30", status:"Planned"}
+  ],
+  hotels: [
+    {name:"Hilton London", city:"London", dates:"Aug 12–15", status:"Booked"},
+    {name:"Hotel in Paris", city:"Paris", dates:"Aug 15–18", status:"Planned"},
+    {name:"Edinburgh Castle Hotel", city:"Edinburgh", dates:"Aug 18–22", status:"Planned"},
+    {name:"Hotel in Rome", city:"Rome", dates:"Aug 22–28", status:"Planned"}
+  ],
+  activities: [
+    {name:"Buckingham Palace Tour", city:"London", date:"2026-08-13", status:"Planned"},
+    {name:"Eiffel Tower Visit", city:"Paris", date:"2026-08-16", status:"Planned"},
+    {name:"Loch Ness Tour", city:"Edinburgh", date:"2026-08-20", status:"Planned"},
+    {name:"Colosseum Tour", city:"Rome", date:"2026-08-24", status:"Planned"}
+  ],
+  itinerary: [
+    {date:"2026-08-11", plan:"Fly Ottawa → London"},
+    {date:"2026-08-12", plan:"Check-in Hilton London, explore city"},
+    {date:"2026-08-15", plan:"Travel London → Paris, check-in hotel"},
+    {date:"2026-08-18", plan:"Travel Paris → Edinburgh, check-in hotel"},
+    {date:"2026-08-22", plan:"Travel Edinburgh → Rome, check-in hotel"},
+    {date:"2026-08-28", plan:"Flight back home"}
+  ],
+  budget: [
+    {item:"AC866 Flight", amount:1200},
+    {item:"Hilton London", amount:800},
+    {item:"Eurostar Train", amount:150}
+  ]
 };
 
-function save() {
-  localStorage.setItem("tripPro", JSON.stringify(data));
-}
+function save() { localStorage.setItem("tripPro", JSON.stringify(data)); }
 
 function showTab(tab) {
-  document.querySelectorAll(".tabs button").forEach(btn => btn.classList.remove("active"));
+  document.querySelectorAll(".tabs button").forEach(btn=>btn.classList.remove("active"));
   event.target.classList.add("active");
-
-  if (tab === "flights") renderFlights();
-  if (tab === "hotels") renderHotels();
-  if (tab === "activities") renderActivities();
-  if (tab === "itinerary") renderItinerary();
-  if (tab === "budget") renderBudget();
+  if(tab==='flights') renderFlights();
+  if(tab==='hotels') renderHotels();
+  if(tab==='activities') renderActivities();
+  if(tab==='itinerary') renderItinerary();
+  if(tab==='budget') renderBudget();
 }
 
 /* ---------- FLIGHTS ---------- */
 function renderFlights() {
-  let html = `
-    <h3>Add Flight</h3>
+  let html = `<h3>Add Flight</h3>
     <input id="fTitle" placeholder="Flight (AC866)">
     <input id="fRoute" placeholder="Route (Ottawa → London)">
     <input id="fDate" type="date">
-    <select id="fStatus">
-      <option>Planned</option>
-      <option>Booked</option>
-    </select>
+    <input id="fTime" type="time">
+    <select id="fStatus"><option>Planned</option><option>Booked</option></select>
     <button onclick="addFlight()">Add</button>
-    <h3>Flights</h3>
-  `;
-
+    <h3>Flights</h3>`;
   data.flights.forEach((f,i)=>{
-    html += `
-      <div class="card ${f.status==='Booked'?'booked':'planned'}">
-        <b>${f.title}</b><br>
-        ${f.route}<br>
-        📅 ${f.date || "No date"} ⏰ ${f.time || "TBD"}<br>
-        ${f.status}<br>
-        <button onclick="deleteItem('flights',${i})">Delete</button>
-      </div>
-    `;
+    html += `<div class="card ${f.status==='Booked'?'booked':'planned'}">
+      <b>${f.title}</b><br>${f.route}<br>
+      📅 ${f.date} ⏰ ${f.time}<br>
+      ${f.status}<br>
+      <button onclick="deleteItem('flights',${i})">Delete</button>
+    </div>`;
   });
-
   document.getElementById("content").innerHTML = html;
 }
-
 function addFlight() {
-  data.flights.push({
-    title:fTitle.value,
-    route:fRoute.value,
-    date:fDate.value,
-    status:fStatus.value
-  });
+  data.flights.push({title:fTitle.value, route:fRoute.value, date:fDate.value, time:fTime.value, status:fStatus.value});
   save(); renderFlights();
 }
 
 /* ---------- HOTELS ---------- */
 function renderHotels() {
-  let html = `
-    <h3>Add Hotel</h3>
+  let html = `<h3>Add Hotel</h3>
     <input id="hName" placeholder="Hotel name">
     <input id="hCity" placeholder="City">
     <input id="hDates" placeholder="Dates (Aug 12–15)">
-    <select id="hStatus">
-      <option>Planned</option>
-      <option>Booked</option>
-    </select>
+    <select id="hStatus"><option>Planned</option><option>Booked</option></select>
     <button onclick="addHotel()">Add</button>
-    <h3>Hotels</h3>
-  `;
-
+    <h3>Hotels</h3>`;
   data.hotels.forEach((h,i)=>{
-    html += `
-      <div class="card ${h.status==='Booked'?'booked':'planned'}">
-        <b>${h.name}</b><br>
-        ${h.city}<br>
-        ${h.dates}<br>
-        ${h.status}<br>
-        <button onclick="deleteItem('hotels',${i})">Delete</button>
-      </div>
-    `;
+    html += `<div class="card ${h.status==='Booked'?'booked':'planned'}">
+      <b>${h.name}</b><br>${h.city}<br>
+      ${h.dates}<br>${h.status}<br>
+      <button onclick="deleteItem('hotels',${i})">Delete</button>
+    </div>`;
   });
-
   content.innerHTML = html;
 }
-
 function addHotel() {
-  data.hotels.push({
-    name:hName.value,
-    city:hCity.value,
-    dates:hDates.value,
-    status:hStatus.value
-  });
+  data.hotels.push({name:hName.value, city:hCity.value, dates:hDates.value, status:hStatus.value});
   save(); renderHotels();
 }
 
 /* ---------- ACTIVITIES ---------- */
 function renderActivities() {
-  let html = `
-    <h3>Add Activity</h3>
+  let html = `<h3>Add Activity</h3>
     <input id="aName" placeholder="Activity">
     <input id="aCity" placeholder="City">
     <input id="aDate" type="date">
-    <select id="aStatus">
-      <option>Planned</option>
-      <option>Booked</option>
-    </select>
+    <select id="aStatus"><option>Planned</option><option>Booked</option></select>
     <button onclick="addActivity()">Add</button>
-    <h3>Activities</h3>
-  `;
-
+    <h3>Activities</h3>`;
   data.activities.forEach((a,i)=>{
-    html += `
-      <div class="card ${a.status==='Booked'?'booked':'planned'}">
-        <b>${a.name}</b><br>
-        ${a.city}<br>
-        📅 ${a.date}<br>
-        ${a.status}<br>
-        <button onclick="deleteItem('activities',${i})">Delete</button>
-      </div>
-    `;
+    html += `<div class="card ${a.status==='Booked'?'booked':'planned'}">
+      <b>${a.name}</b><br>${a.city}<br>
+      📅 ${a.date}<br>${a.status}<br>
+      <button onclick="deleteItem('activities',${i})">Delete</button>
+    </div>`;
   });
-
   content.innerHTML = html;
 }
-
 function addActivity() {
-  data.activities.push({
-    name:aName.value,
-    city:aCity.value,
-    date:aDate.value,
-    status:aStatus.value
-  });
+  data.activities.push({name:aName.value, city:aCity.value, date:aDate.value, status:aStatus.value});
   save(); renderActivities();
 }
 
 /* ---------- ITINERARY ---------- */
 function renderItinerary() {
-  let html = `
-    <h3>Add Day Plan</h3>
+  let html = `<h3>Add Day Plan</h3>
     <input id="iDate" type="date">
     <input id="iPlan" placeholder="Plan for the day">
     <button onclick="addItinerary()">Add</button>
-    <h3>Itinerary</h3>
-  `;
-
+    <h3>Itinerary</h3>`;
   data.itinerary.forEach((d,i)=>{
-    html += `
-      <div class="card">
-        📅 ${d.date}<br>
-        ${d.plan}<br>
-        <button onclick="deleteItem('itinerary',${i})">Delete</button>
-      </div>
-    `;
+    html += `<div class="card">📅 ${d.date}<br>${d.plan}<br>
+      <button onclick="deleteItem('itinerary',${i})">Delete</button></div>`;
   });
-
   content.innerHTML = html;
 }
-
 function addItinerary() {
-  data.itinerary.push({
-    date:iDate.value,
-    plan:iPlan.value
-  });
+  data.itinerary.push({date:iDate.value, plan:iPlan.value});
   save(); renderItinerary();
 }
 
 /* ---------- BUDGET ---------- */
 function renderBudget() {
-  let html = `
-    <h3>Add Expense</h3>
+  let html = `<h3>Add Expense</h3>
     <input id="bItem" placeholder="Item (Flight, Hotel)">
     <input id="bAmount" type="number" placeholder="Amount">
     <button onclick="addBudget()">Add</button>
-    <h3>Budget</h3>
-  `;
-
+    <h3>Budget</h3>`;
   let total = 0;
-
   data.budget.forEach((b,i)=>{
     total += Number(b.amount);
-    html += `
-      <div class="card">
-        ${b.item}: $${b.amount}
-        <button onclick="deleteItem('budget',${i})">Delete</button>
-      </div>
-    `;
+    html += `<div class="card">${b.item}: $${b.amount}
+      <button onclick="deleteItem('budget',${i})">Delete</button></div>`;
   });
-
   html += `<h3>Total: $${total}</h3>`;
   content.innerHTML = html;
 }
-
 function addBudget() {
-  data.budget.push({
-    item:bItem.value,
-    amount:bAmount.value
-  });
+  data.budget.push({item:bItem.value, amount:bAmount.value});
   save(); renderBudget();
 }
 
 /* ---------- DELETE ---------- */
-function deleteItem(type, index) {
-  data[type].splice(index,1);
-  save();
-  showTab(type);
-}
+function deleteItem(type,index){data[type].splice(index,1);save();showTab(type);}
 
 /* LOAD DEFAULT */
 renderFlights();
