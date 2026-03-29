@@ -37,42 +37,64 @@
 <div class="content" id="content"></div>
 
 <script>
+// ======== PRELOADED DATA ========
 let data = JSON.parse(localStorage.getItem("tripPro")) || {
   flights: [
     {title:"AC866", route:"Ottawa → London", date:"2026-08-11", time:"18:30", status:"Booked"},
     {title:"Eurostar 9023", route:"London → Paris", date:"2026-08-15", time:"09:00", status:"Planned"},
     {title:"Flight TBD", route:"Paris → Edinburgh", date:"2026-08-18", time:"10:00", status:"Planned"},
-    {title:"Flight TBD", route:"Edinburgh → Rome", date:"2026-08-22", time:"12:30", status:"Planned"}
+    {title:"Flight TBD", route:"Edinburgh → Rome", date:"2026-08-22", time:"12:30", status:"Planned"},
+    {title:"Flight TBD", route:"Rome → Ottawa", date:"2026-08-28", time:"16:00", status:"Planned"}
   ],
   hotels: [
     {name:"Hilton London", city:"London", dates:"Aug 12–15", status:"Booked"},
-    {name:"Hotel in Paris", city:"Paris", dates:"Aug 15–18", status:"Planned"},
-    {name:"Edinburgh Castle Hotel", city:"Edinburgh", dates:"Aug 18–22", status:"Planned"},
-    {name:"Hotel in Rome", city:"Rome", dates:"Aug 22–28", status:"Planned"}
+    {name:"Hotel Paris Centre", city:"Paris", dates:"Aug 15–18", status:"Planned"},
+    {name:"Inverness Castle Hotel", city:"Edinburgh", dates:"Aug 18–22", status:"Planned"},
+    {name:"Hotel Rome Central", city:"Rome", dates:"Aug 22–28", status:"Planned"}
   ],
   activities: [
-    {name:"Buckingham Palace Tour", city:"London", date:"2026-08-13", status:"Planned"},
-    {name:"Eiffel Tower Visit", city:"Paris", date:"2026-08-16", status:"Planned"},
-    {name:"Loch Ness Tour", city:"Edinburgh", date:"2026-08-20", status:"Planned"},
-    {name:"Colosseum Tour", city:"Rome", date:"2026-08-24", status:"Planned"}
+    {name:"Buckingham Palace Tour", city:"London", date:"2026-08-12", time:"10:00", status:"Planned"},
+    {name:"London Eye", city:"London", date:"2026-08-13", time:"14:00", status:"Planned"},
+    {name:"Louvre Museum", city:"Paris", date:"2026-08-16", time:"11:00", status:"Planned"},
+    {name:"Eiffel Tower Visit", city:"Paris", date:"2026-08-17", time:"18:30", status:"Planned"},
+    {name:"Loch Ness Tour", city:"Edinburgh", date:"2026-08-19", time:"09:00", status:"Planned"},
+    {name:"Edinburgh Castle", city:"Edinburgh", date:"2026-08-20", time:"13:00", status:"Planned"},
+    {name:"Colosseum Tour", city:"Rome", date:"2026-08-23", time:"10:00", status:"Planned"},
+    {name:"Vatican Museums", city:"Rome", date:"2026-08-25", time:"09:30", status:"Planned"},
+    {name:"Trevi Fountain & Spanish Steps", city:"Rome", date:"2026-08-26", time:"15:00", status:"Planned"}
   ],
-  itinerary: [
-    {date:"2026-08-11", plan:"Fly Ottawa → London"},
-    {date:"2026-08-12", plan:"Check-in Hilton London, explore city"},
-    {date:"2026-08-15", plan:"Travel London → Paris, check-in hotel"},
-    {date:"2026-08-18", plan:"Travel Paris → Edinburgh, check-in hotel"},
-    {date:"2026-08-22", plan:"Travel Edinburgh → Rome, check-in hotel"},
-    {date:"2026-08-28", plan:"Flight back home"}
-  ],
+  itinerary: [],
   budget: [
     {item:"AC866 Flight", amount:1200},
-    {item:"Hilton London", amount:800},
-    {item:"Eurostar Train", amount:150}
+    {item:"Eurostar Train", amount:150},
+    {item:"London Hilton", amount:800},
+    {item:"Paris Hotel", amount:900},
+    {item:"Edinburgh Hotel", amount:700},
+    {item:"Rome Hotel", amount:1100},
+    {item:"Activities & Tours", amount:600}
   ]
 };
 
+// ======== UTILITY FUNCTIONS ========
 function save() { localStorage.setItem("tripPro", JSON.stringify(data)); }
 
+function sortItinerary() {
+  data.itinerary.sort((a,b) => {
+    const dateA = new Date(a.date);
+    const dateB = new Date(b.date);
+    const timeA = a.plan.match(/⏰ (\d{2}:\d{2})/)?.[1] || "00:00";
+    const timeB = b.plan.match(/⏰ (\d{2}:\d{2})/)?.[1] || "00:00";
+    if(dateA.getTime() === dateB.getTime()) return timeA.localeCompare(timeB);
+    return dateA - dateB;
+  });
+}
+
+function addToItinerary(date, plan) {
+  data.itinerary.push({date, plan});
+  sortItinerary();
+}
+
+// ======== TAB NAVIGATION ========
 function showTab(tab) {
   document.querySelectorAll(".tabs button").forEach(btn=>btn.classList.remove("active"));
   event.target.classList.add("active");
@@ -83,7 +105,7 @@ function showTab(tab) {
   if(tab==='budget') renderBudget();
 }
 
-/* ---------- FLIGHTS ---------- */
+// ======== FLIGHTS ========
 function renderFlights() {
   let html = `<h3>Add Flight</h3>
     <input id="fTitle" placeholder="Flight (AC866)">
@@ -101,14 +123,17 @@ function renderFlights() {
       <button onclick="deleteItem('flights',${i})">Delete</button>
     </div>`;
   });
-  document.getElementById("content").innerHTML = html;
+  content.innerHTML = html;
 }
+
 function addFlight() {
-  data.flights.push({title:fTitle.value, route:fRoute.value, date:fDate.value, time:fTime.value, status:fStatus.value});
+  const flight = {title:fTitle.value, route:fRoute.value, date:fDate.value, time:fTime.value, status:fStatus.value};
+  data.flights.push(flight);
+  addToItinerary(flight.date, `${flight.title} ${flight.route} ⏰ ${flight.time}`);
   save(); renderFlights();
 }
 
-/* ---------- HOTELS ---------- */
+// ======== HOTELS ========
 function renderHotels() {
   let html = `<h3>Add Hotel</h3>
     <input id="hName" placeholder="Hotel name">
@@ -126,53 +151,54 @@ function renderHotels() {
   });
   content.innerHTML = html;
 }
+
 function addHotel() {
-  data.hotels.push({name:hName.value, city:hCity.value, dates:hDates.value, status:hStatus.value});
+  const hotel = {name:hName.value, city:hCity.value, dates:hDates.value, status:hStatus.value};
+  data.hotels.push(hotel);
+  const checkInDate = hotel.dates.split('–')[0];
+  addToItinerary(checkInDate, `Check-in ${hotel.name}, ${hotel.city}`);
   save(); renderHotels();
 }
 
-/* ---------- ACTIVITIES ---------- */
+// ======== ACTIVITIES ========
 function renderActivities() {
   let html = `<h3>Add Activity</h3>
     <input id="aName" placeholder="Activity">
     <input id="aCity" placeholder="City">
     <input id="aDate" type="date">
+    <input id="aTime" type="time">
     <select id="aStatus"><option>Planned</option><option>Booked</option></select>
     <button onclick="addActivity()">Add</button>
     <h3>Activities</h3>`;
   data.activities.forEach((a,i)=>{
     html += `<div class="card ${a.status==='Booked'?'booked':'planned'}">
       <b>${a.name}</b><br>${a.city}<br>
-      📅 ${a.date}<br>${a.status}<br>
+      📅 ${a.date} ⏰ ${a.time}<br>
+      ${a.status}<br>
       <button onclick="deleteItem('activities',${i})">Delete</button>
     </div>`;
   });
   content.innerHTML = html;
 }
+
 function addActivity() {
-  data.activities.push({name:aName.value, city:aCity.value, date:aDate.value, status:aStatus.value});
+  const activity = {name:aName.value, city:aCity.value, date:aDate.value, time:aTime.value, status:aStatus.value};
+  data.activities.push(activity);
+  addToItinerary(activity.date, `${activity.name} in ${activity.city} ⏰ ${activity.time}`);
   save(); renderActivities();
 }
 
-/* ---------- ITINERARY ---------- */
+// ======== ITINERARY ========
 function renderItinerary() {
-  let html = `<h3>Add Day Plan</h3>
-    <input id="iDate" type="date">
-    <input id="iPlan" placeholder="Plan for the day">
-    <button onclick="addItinerary()">Add</button>
-    <h3>Itinerary</h3>`;
+  let html = `<h3>Itinerary</h3>`;
   data.itinerary.forEach((d,i)=>{
     html += `<div class="card">📅 ${d.date}<br>${d.plan}<br>
       <button onclick="deleteItem('itinerary',${i})">Delete</button></div>`;
   });
   content.innerHTML = html;
 }
-function addItinerary() {
-  data.itinerary.push({date:iDate.value, plan:iPlan.value});
-  save(); renderItinerary();
-}
 
-/* ---------- BUDGET ---------- */
+// ======== BUDGET ========
 function renderBudget() {
   let html = `<h3>Add Expense</h3>
     <input id="bItem" placeholder="Item (Flight, Hotel)">
@@ -188,15 +214,20 @@ function renderBudget() {
   html += `<h3>Total: $${total}</h3>`;
   content.innerHTML = html;
 }
+
 function addBudget() {
   data.budget.push({item:bItem.value, amount:bAmount.value});
   save(); renderBudget();
 }
 
-/* ---------- DELETE ---------- */
-function deleteItem(type,index){data[type].splice(index,1);save();showTab(type);}
+// ======== DELETE ========
+function deleteItem(type,index){
+  data[type].splice(index,1);
+  save();
+  showTab(type);
+}
 
-/* LOAD DEFAULT */
+// ======== INITIAL LOAD ========
 renderFlights();
 </script>
 
