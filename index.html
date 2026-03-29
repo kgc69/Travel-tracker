@@ -82,7 +82,7 @@ function renderFlights() {
       <div class="card ${f.status==='Booked'?'booked':'planned'}">
         <b>${f.title}</b><br>
         ${f.route}<br>
-        📅 ${flight.date || "No date"} ⏰ ${flight.time || "TBD"}<br>
+        📅 ${f.date || "No date"} ⏰ ${f.time || "TBD"}<br>
         ${f.status}<br>
         <button onclick="deleteItem('flights',${i})">Delete</button>
       </div>
